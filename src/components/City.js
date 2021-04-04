@@ -849,11 +849,10 @@ const test3 = [
       "UpdateTime": "2021-04-03T01:33:07+08:00"
     }
   ]
-let flag = 30
 
 const CityNames = [
     {'enName':'Keelung', 'name':'基隆'},
-    {'enName':'New Taipei', 'name':'新北'},
+    {'enName':'NewTaipei', 'name':'新北'},
     {'enName':'Taipei', 'name':'台北'},
     {'enName':'Yilan', 'name':'宜蘭'},
     {'enName':'Taoyuan', 'name':'桃園'},
@@ -912,20 +911,21 @@ class SciencCity extends React.Component{
 function Points(){
     let {city} = useParams()
     const [points, setPoints] = useState([])
+    const [flag, setFlag] = useState(30)
     useEffect(() =>{
-        checkCity(city)
-            
-        
-        
+        // checkCity(city)
+        setFlag(30)
         let active = true
       
-        // fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
-        // .then(res => res.json())
-        // .then(data => {
-        //     if(active)
-        //         setPoints(data)
-        // })
-        // .catch(err => console.log(err))
+        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
+        .then(res => res.json())
+        .then(data => {
+            if(active){
+                setPoints(data)
+                setFlag(flag+30)
+              }
+        })
+        .catch(err => console.log(err))
 
         window.addEventListener('scroll', isBottom)
         
@@ -936,20 +936,16 @@ function Points(){
     }, [city])  
     const isBottom = () =>{
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
-
-            console.log("flag bef:", flag)
-            console.log(window.innerHeight, window.pageYOffset, document.body.offsetHeight)
-            // fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&skip=${flag}`)
-            // .then(res => res.json())
-            // .then(data => {
-            //         setPoints(points.concat(data))
-            // })
-            // .catch(err => console.log(err))
-
-            // flag+=30
+            fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&$skip=${flag}`)
+            .then(res => res.json())
+            .then(data => {
+                setPoints(points.concat(data))
+                setFlag(flag+30)
+            })
+            .catch(err => console.log(err))
             // console.log("flag aft:", flag)
-            if(city == "New Taipei")
-                setPoints(test2.concat(test3))
+            // if(city == "New Taipei")
+            //     setPoints(test2.concat(test3))
         }
             
     }
@@ -957,7 +953,7 @@ function Points(){
         console.log("City is", c)
         if(c == "Keelung")
                 setPoints(test)
-        else if(c == "New Taipei")
+        else if(c == "NewTaipei")
                 setPoints(test2)
         else
             setPoints([])
