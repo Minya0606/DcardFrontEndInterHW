@@ -514,22 +514,25 @@ class Scienc extends React.Component{
     constructor(props){
         super(props)
         this.state = {
-            information:[]
+            points:[]
         }
     }
     componentDidMount(){
         window.addEventListener('scroll', this.isBottom)
-        this.setState({
-            information:test
-        },() => {
-            console.log("start") 
-            console.log(this.state)
-        })
+        // this.setState({
+        //     information:test
+        // },() => {
+        //     // console.log("start") 
+        //     // console.log(this.state)
+        // })
         fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag}`)
-        fetch(`./test.txt`)
         .then(res => res.json())
         .then(data => {
+          console.log("fetch")
             console.log(data)
+            this.setState({
+              points:data
+            })
         })
     }
     componentWillMount(){
@@ -538,10 +541,9 @@ class Scienc extends React.Component{
     
     render_component() { 
         let mapp = []
-        console.log("hi")
-        console.log(this.state.information)
-        if (this.state.information.length > 0) 
-            mapp = this.state.information.map((data, index) =>{
+        
+        if (this.state.points.length > 0) 
+            mapp = this.state.points.map((data, index) =>{
                 return(
                     <tr key={index} id={index}>
                         <td>{data.Name}</td>
@@ -552,15 +554,26 @@ class Scienc extends React.Component{
         return mapp
     }
     isBottom = () =>{
+      const {points} = this.state
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
-            this.setState({
-                information: test.concat(test2)
-            })
+          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag+30}&skip=${flag}`)
+          .then(res => res.json())
+          .then(data => {
+            console.log("bottom fetch")
+            console.log(data)
+            let merged = points.push(...data)
+              this.setState({
+                points:[...merged]
+              },()=>{
+                console.log("merged")
+                console.log(this.state.points)
+              })
+          })
+          flag+=30
         }
             
     }
     render() {
-        console.log(test.concat(test2))
         return(
             <div className="container" id="header">
                 <Table striped bordered hover>

@@ -1,7 +1,7 @@
 import { Route, Link } from 'react-router-dom/cjs/react-router-dom.min';
 import Scienc from './components/Scienc'
 import SciencCity from './components/City.js'
-import {Navbar, Nav} from 'react-bootstrap'
+import {Navbar, Nav, Button} from 'react-bootstrap'
 
 function App(){
   return(
@@ -34,6 +34,7 @@ function Home (){
   return (
     <div width="100%" align="center">
       Welcome
+      <Button variant="outline-secondary">I</Button>
     </div>
   )
 }
