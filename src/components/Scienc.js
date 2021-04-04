@@ -6,7 +6,8 @@ class Scienc extends React.Component{
         super(props)
         this.state = {
           flag:30,
-          points:[]
+          points:[],
+          noPoints:false
         }
     }
     componentDidMount(){
@@ -21,8 +22,12 @@ class Scienc extends React.Component{
               this.setState({
                 points:data
               })
-            else
-              alert("沒有更多景點了!")
+            else{
+              // alert("沒有更多景點了!")
+              this.setState({
+                noPoints:true
+              })
+            }
         })
     }
     
@@ -35,6 +40,7 @@ class Scienc extends React.Component{
     isBottom = () =>{
       const { flag, points } = this.state
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
+        // if(window.scrollHeight >= document.body.offsetHeight){
           //抓取後30筆資料
           fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag+30}&$skip=${flag}`)
           .then(res => res.json())
@@ -45,10 +51,14 @@ class Scienc extends React.Component{
               this.setState({
                 flag:flag+30,
                 points:merged
-              },console.log("flag", flag, data))
+              })
             }
-            else
-              alert("沒有更多景點了!")
+            else{
+              // alert("沒有更多景點了!")
+              this.setState({
+                noPoints:true
+              })
+            }
           })
         }
             
@@ -72,6 +82,7 @@ class Scienc extends React.Component{
 
     
     render() {
+      const {noPoints} = this.state
         return(
             <div className="container" id="header">
                 <Table striped bordered hover>
@@ -83,6 +94,7 @@ class Scienc extends React.Component{
                     </thead>
                     <tbody>
                         {this.renderPoints()}
+                        {noPoints?<tr><td colSpan="2" style={{"color":"red"}}>沒有更多景點了</td></tr>:null}
                     </tbody>
                 </Table>
                 
@@ -90,71 +102,5 @@ class Scienc extends React.Component{
         )
     }
 }
-
-// function Sciencs (){
-//     const [views, setViews] = useState({})
-
-// //   useEffect(() =>{
-// //     // fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag}`)
-// //     fetch(`./test.txt`)
-// //     .then(res => res.json())
-// //     .then(data => {
-// //       console.log(data)
-// //       setViews(data)
-// //     })
-// //   }, [])
-//     // useEffect(() => {
-//     //     const onScroll = () =>{
-//     //         const element = document.getElementById('header')
-//     //         console.log(element.target.scrollHeight , element.target.scrollTop , element.target.clientHeight)
-//     //         const bottom = element.target.scrollHeight - element.target.scrollTop === element.target.clientHeight
-//     //         console.log('reached')
-//     //     }
-//     //     window.addEventListener('scroll', onScroll)
-//     //     return () => {
-//     //         window.removeEventListener('scroll', onScroll)
-//     //     }
-//     // }, [])
-//     // const isBottom = (el) =>  {
-//     //     return el.getBoundingClientRect().bottom <= window.innerHeight;
-//     //   }
-//     // const scrollbottom = () =>{
-//     //     const wrappedElement = document.getElementById('header');
-//     //     if (isBottom(wrappedElement)) {
-//     //         console.log('header bottom reached');
-//     //         document.removeEventListener('scroll', scrollbottom);
-//     //     }
-//     // }
-//     // const isBottom = e =>{
-//     //     const bottom = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
-//     //     console.log("reach")
-//     // }
-  
-     
-//   const render_component = 
-//     test.map((data, index) =>{
-//       return(
-//         <tr key={index} id={index}>
-//             <td>{data.Name}</td>
-//             <td>{data.Description}</td>
-//         </tr> 
-//       )
-//     })
-  
-//     return (
-//         <Container id="header" >
-//             <Table striped bordered hover>
-//                 <thead>
-//                     <tr>
-//                         <th width="20%">名稱</th>
-//                         <th width="80%">簡介</th>
-//                     </tr>
-//                 </thead>
-//                 {render_component}
-//             </Table>
-            
-//         </Container>
-//     )
-// }
 
 export default Scienc;
