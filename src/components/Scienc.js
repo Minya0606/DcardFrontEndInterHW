@@ -1,6 +1,5 @@
 import React from 'react'
 import {Table} from 'react-bootstrap'
-let flag = 30
 
 const test = [
     {
@@ -514,28 +513,30 @@ class Scienc extends React.Component{
     constructor(props){
         super(props)
         this.state = {
-            points:[]
+          flag:30,
+          points:[]
         }
     }
     componentDidMount(){
         window.addEventListener('scroll', this.isBottom)
-        // this.setState({
-        //     information:test
-        // },() => {
-        //     // console.log("start") 
-        //     // console.log(this.state)
-        // })
-        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log("fetch")
-            console.log(data)
-            this.setState({
-              points:data
-            })
+        this.setState({
+            points:test
+        },() => {
+            // console.log("start") 
+            // console.log(this.state)
         })
+        // fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag}`)
+        // fetch('../src/components/Keelung.json')
+        // .then(res => res.json())
+        // .then(data => {
+        //   console.log("fetch")
+        //     console.log(data)
+        //     this.setState({
+        //       points:data
+        //     })
+        // })
     }
-    componentWillMount(){
+    componentWillUnmount(){
         window.removeEventListener('scroll', this.isBottom)
     }
     
@@ -554,22 +555,22 @@ class Scienc extends React.Component{
         return mapp
     }
     isBottom = () =>{
-      const {points} = this.state
+      const {flag,points} = this.state
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
-          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag+30}&skip=${flag}`)
+          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag+30}&$skip=${flag}`)
           .then(res => res.json())
           .then(data => {
             console.log("bottom fetch")
             console.log(data)
-            let merged = points.push(...data)
+            let merged = points.concat(data)
               this.setState({
-                points:[...merged]
+                flag:flag+30,
+                points:merged
               },()=>{
                 console.log("merged")
                 console.log(this.state.points)
               })
           })
-          flag+=30
         }
             
     }
