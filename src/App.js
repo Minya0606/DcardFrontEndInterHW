@@ -3,21 +3,6 @@ import Scienc from './components/Scienc'
 import SciencCity from './components/City.js'
 import {Navbar, Nav} from 'react-bootstrap'
 
-function NavLinks(){
-  return(
-     <Navbar bg="light" expand="lg">
-      <Navbar.Brand href="/"> Demo </Navbar.Brand>
-      <Navbar.Toggle aria-controls="basic-navbar-nav" />
-      <Navbar.Collapse id="basic-navbar-nav">
-        <Nav className="mr-auto">
-          <Link to="scienc" className="nav-link">全部景點</Link>
-          <Link to="sciencCity" className="nav-link">城市景點</Link>
-        </Nav>
-      </Navbar.Collapse>
-    </Navbar>
-  )
-}
-
 function App(){
   return(
     <div>

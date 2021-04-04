@@ -1,5 +1,5 @@
-import React, { useState, useEffect} from 'react'
-import {Row, Col, Table, Container} from 'react-bootstrap'
+import React from 'react'
+import {Table} from 'react-bootstrap'
 let flag = 30
 
 const test = [
