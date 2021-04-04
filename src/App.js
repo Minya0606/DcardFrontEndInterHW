@@ -1,6 +1,6 @@
 import { Route, Link } from 'react-router-dom/cjs/react-router-dom.min';
 import Scienc from './components/Scienc'
-import SciencCity from './components/City.js'
+import SciencCity from './components/SciencCity.js'
 import {Navbar, Nav, Container, Row, Col} from 'react-bootstrap'
 
 const CityNames = [

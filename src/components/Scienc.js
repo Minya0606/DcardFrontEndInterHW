@@ -7,7 +7,7 @@ class Scienc extends React.Component{
         this.state = {
           flag:30,
           points:[],
-          noPoints:false
+          noPoints:false,
         }
     }
     componentDidMount(){
@@ -23,7 +23,6 @@ class Scienc extends React.Component{
                 points:data
               })
             else{
-              // alert("沒有更多景點了!")
               this.setState({
                 noPoints:true
               })
@@ -38,25 +37,26 @@ class Scienc extends React.Component{
 
     //移動至底部之事件
     isBottom = () =>{
-      const { flag, points } = this.state
+      const { flag, points, noPoints } = this.state
+      if(!noPoints)//判斷是否抓取新資料
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
-        // if(window.scrollHeight >= document.body.offsetHeight){
           //抓取後30筆資料
           fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag+30}&$skip=${flag}`)
           .then(res => res.json())
           .then(data => {
             if(data.length >0){
-              //串接前面的景點資料
-              let merged = points.concat(data)
+              let merged = points.concat(data) //串接前面的景點資料
+              let noPoints = merged.length >= flag+30? true:false //控制是否抓取新資料
               this.setState({
                 flag:flag+30,
-                points:merged
+                points:merged,
+                noPoints:noPoints
               })
             }
             else{
-              // alert("沒有更多景點了!")
               this.setState({
-                noPoints:true
+                noPoints:true,
+                fetchNew:false
               })
             }
           })

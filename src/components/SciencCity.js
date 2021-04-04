@@ -1,6 +1,5 @@
 import React, { useState, useEffect} from 'react'
-import { Route, Link} from 'react-router-dom'
-import { Container, Table, Row, Col, ListGroup} from 'react-bootstrap'
+import { Container, Table} from 'react-bootstrap'
 import { useParams } from 'react-router-dom/cjs/react-router-dom.min'
  
 const CityNames = [
@@ -33,9 +32,9 @@ function SciencCity(){
   const [points, setPoints] = useState([])
   const [flag, setFlag] = useState(30)
   const [noPoints, setNoPoints] = useState(false)
+
   useEffect(() =>{
     let active = true
-    setFlag(30)
     //請求當前 city 之前30比景點資料
     fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
     .then(res => res.json())
@@ -43,6 +42,8 @@ function SciencCity(){
         if(active){
           if(data.length > 0)
             setPoints(data)
+            if(data.length <=30)
+              setNoPoints(true)
           }
           else
             // alert("沒有更多景點了!")
@@ -61,41 +62,46 @@ function SciencCity(){
 
   //捲動至底部事件
   const isBottom = () =>{
-    console.log(window.innerHeight , window.scrollY,  document.body.offsetHeight, document.getElementById('root').scrollTop)
-    // if(window.innerHeight + window.pageYOffset > document.body.offsetHeight){
-      if(window.innerHeight + window.pageYOffset > document.body.offsetHeight){
-        setTimeout(()=>{
+    if(!noPoints)
+      if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
+        console.log("City", city)
         //請求後30比之景點資料
-        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&$skip=${flag}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.length >0){
-              setPoints(points.concat(data))
-              setFlag(flag+30)
-              console.log("flag", flag)
-            }
-            else
-              // alert("沒有更多景點了!")
-              setNoPoints(true)
-        })
-        .catch(err => console.log("flag"))
-      }, 100)
+          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&$skip=${flag}`)
+          .then(res => res.json())
+          .then(data => {
+              if(data.length >0){
+                let newPoints = points.concat(data)
+                setPoints(newPoints)
+                setFlag(flag+30)
+                if(newPoints.length <=flag+30)
+                  setNoPoints(true)
+              }
+              else{
+                // alert("沒有更多景點了!")
+                console.log("NO")
+                setNoPoints(true)
+              }
+          })
+          .catch(err => console.log("err!", err))
     } 
          
   }
 
   //Render 景點清單
-  const renderPoints = 
-    points.map((data, index) =>
+  const renderPoints = () =>{
+    let tags = []
+    tags = points.map((data, index) =>
       <tr key={index}>
         <td>{`${index+1}. `}{data.Name}</td>
       </tr>
-  )
+    )
+    return tags
+  }
 
   //渲染城市名稱
   const tableHeader = ()=> {
       const name = CityNames.map(data => {
-          if(data.enName == city)
+          if(data.enName === city)
               return data.name
       })
       return(
@@ -106,14 +112,13 @@ function SciencCity(){
           </thead>
       )
   }
-
+  
   return(
       <Container>
           <Table>
               {points.length>1 ? tableHeader() : null}
               <tbody>
-                  {city.length>0 ?renderPoints: null}
-                  <div id="c"></div>
+                  {city.length>0 ?renderPoints(): null}
                   {noPoints?<tr><td colSpan="2">沒有更多景點了</td></tr>:null}
               </tbody>
           </Table>
