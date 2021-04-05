@@ -57,7 +57,7 @@ class SciencCity extends React.Component{
         })
         .catch(err => console.log("err", err))
     }
-
+    
     componentDidUpdate(prevProps){
         const {city} = this.props.match.params
         fetchNew = true 
