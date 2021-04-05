@@ -33,28 +33,84 @@ class SciencCity extends React.Component{
         this.state = {
             points:[],
             flag:30,
-            noPoints: true,
+            noMorePoints: false,
         }
     }
     componentDidMount(){
         const {flag} = this.state
         const {city} = this.props.match.params
-        console.log(city)
+        
+        window.addEventListener('scroll', this.isBottom)
+
         fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
         .then(res => res.json())
         .then(data => {
+            let noMorePoints = data.length <30 ?true:false
             if(data.length > 0)
                 this.setState({
-                    points: data
+                    points: data,
+                    noMorePoints:noMorePoints
                 })
             else
-                // alert("沒有更多景點了!")
                 this.setState({
-                    noPoints:false
+                    noMorePoints:true
                 })
         })
         .catch(err => console.log("err", err))
     }
+
+    componentDidUpdate(prevProps){
+        const flag = 30
+        const {city} = this.props.match.params
+        console.log(flag)
+        if(prevProps.match.params.city !== city)
+            fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
+            .then(res => res.json())
+            .then(data => {
+                let noMorePoints = data.length <30 ?true:false
+                if(data.length > 0)
+                    this.setState({
+                        points: data,
+                        noPoints:noMorePoints
+                    }, console.log(this.state.points))
+                else
+                    this.setState({
+                        noMorePoints:false
+                    })
+            })
+            .catch(err => console.log("err", err))
+    }
+
+    componentWillUnmount(){
+        window.removeEventListener('scroll', this.isBottom)
+    }
+
+    isBottom = () =>{
+        const { flag, points, noMorePoints } = this.state
+        const {city} = this.props.match.params
+        if(!noMorePoints)
+            if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
+                //抓取後30筆資料
+                fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&$skip=${flag}`)
+                .then(res => res.json())
+                .then(data => {
+                    let merged = points.concat(data)
+                    let noMorePoints = merged.length<flag+30 ? true : false
+                    if(data.length > 0)
+                        this.setState({
+                            points: merged,
+                            noPoints:noMorePoints,
+                            flag:flag+30
+                        }, console.log(this.state.points))
+                    else
+                        this.setState({
+                            noMorePoints:false
+                        })
+                })
+                .catch(err => console.log("err", err))
+            }
+              
+      }
 
     showCityName(){
         const {city} = this.props.match.params
@@ -83,16 +139,15 @@ class SciencCity extends React.Component{
         
 
     render(){
-        const {points, noPoints} = this.state
+        const {points, noMorePoints} = this.state
         const {city} = this.props.match.params
-        console.log(city)
         return(
             <Container>
                 <Table>
                     {city ? this.showCityName() : null}
                     <tbody>
-                        {points.length>1 ?this.renderPoints: null}
-                        {noPoints?<tr><td colSpan="2">沒有更多景點了</td></tr>:null}
+                        {points.length>1 ?this.renderPoints(): null}
+                        {noMorePoints?<tr><td colSpan="2">沒有更多景點了</td></tr>:null}
                     </tbody>
                 </Table>
             </Container>

@@ -47,7 +47,7 @@ function App(){
             </Nav>
         </Navbar.Collapse>
       </Navbar>
-      <Route exact path="/"> <Home /> </Route>
+      <Route exact path="/"> <Scienc /> </Route>
       <Route exact path="/sciencSpot"> <Scienc /> </Route>
       <Route path="/sciencSpot/:city" component={SciencCity}></Route>
       
@@ -56,29 +56,29 @@ function App(){
   )
 }
 
-function Home (){
-  return (
-    <div width="100%" align="center">
-      <Container style={{"marginTop":"30px"}}>
-        <Row className="justify-content-md-center">
-            <Col>
-             <h2>Welcome</h2>
-            </Col>
-        </Row>
-        <Row className="justify-content-md-center justify-content-sm-center" style={{"marginBottom":"5px"}}>
-          <Col sm={6} md={6}>
-            <Link to="/sciencSpot" className="btn btn-outline-secondary" style={{"width":"100%"}}>瀏覽全部景點</Link>
-          </Col>
-        </Row>
-        <Row className="justify-content-md-center justify-content-sm-center" style={{"marginBottom":"5px"}}>
-          <Col sm={6} md={6}>
-            <Link to="/sciencCity" className="btn btn-outline-secondary" style={{"width":"100%"}}>瀏覽縣市景點</Link>
-          </Col>
-        </Row>
-      </Container>
+// function Home (){
+//   return (
+//     <div width="100%" align="center">
+//       <Container style={{"marginTop":"30px"}}>
+//         <Row className="justify-content-md-center">
+//             <Col>
+//              <h2>Welcome</h2>
+//             </Col>
+//         </Row>
+//         <Row className="justify-content-md-center justify-content-sm-center" style={{"marginBottom":"5px"}}>
+//           <Col sm={6} md={6}>
+//             <Link to="/sciencSpot" className="btn btn-outline-secondary" style={{"width":"100%"}}>瀏覽全部景點</Link>
+//           </Col>
+//         </Row>
+//         <Row className="justify-content-md-center justify-content-sm-center" style={{"marginBottom":"5px"}}>
+//           <Col sm={6} md={6}>
+//             <Link to="/sciencCity" className="btn btn-outline-secondary" style={{"width":"100%"}}>瀏覽縣市景點</Link>
+//           </Col>
+//         </Row>
+//       </Container>
       
-    </div>
-  )
-}
+//     </div>
+//   )
+// }
 
 export default App;
