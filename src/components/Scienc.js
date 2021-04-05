@@ -1,6 +1,7 @@
 import React from 'react'
-import {Table} from 'react-bootstrap'
+import {Table, Container} from 'react-bootstrap'
 
+let fetchNew = true
 class Scienc extends React.Component{
     constructor(props){
         super(props)
@@ -8,7 +9,6 @@ class Scienc extends React.Component{
           skip:30,
           points:[],
           noMorePoints:false,
-          fetchNew:true
         }
     }
     componentDidMount(){
@@ -38,33 +38,39 @@ class Scienc extends React.Component{
 
     //移動至底部之事件
     isBottom = () =>{
-      const { skip, points, noMorePoints, fetchNew } = this.state
+      const { skip, points, noMorePoints} = this.state
       if(!noMorePoints)//判斷是否還有更多資料
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
           if(fetchNew){//判斷是否抓取新資料
-            this.setState({
-              fetchNew:false
-            })
-
+            fetchNew = false
             //抓取後30筆資料
             fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=30&$skip=${skip}`)
             .then(res => res.json())
             .then(data => {
               if(data.length >0){
-                let merged = points.concat(data) //串接前面的景點資料
-                let noMorePoints = merged.length < skip+30? true:false //判斷是否還有更多資料
+                if(!data.message){
+                  let merged = points.concat(data) //串接前面的景點資料
+                  let noMorePoints = merged.length < skip+30? true:false //判斷是否還有更多資料
 
-                this.setState({
-                  skip:skip+30,
-                  points:merged,
-                  noMorePoints:noMorePoints
-                })
+                  this.setState({
+                    skip:skip+30,
+                    points:merged,
+                    noMorePoints:noMorePoints
+                  })
+                }
+                else{
+                  console.log("data has message")
+                  this.setState({
+                    noMorePoints:true,
+                  })
+                  fetchNew = false
+                }
               }
               else{
                 this.setState({
                   noMorePoints:true,
-                  fetchNew:false
                 })
+                fetchNew = false
               }
             })
           }
@@ -87,11 +93,7 @@ class Scienc extends React.Component{
                 )
             })
         
-        if(!this.state.fetchNew){
-          this.setState({
-            fetchNew:true
-          })
-        }
+        fetchNew = true
         return pointTags
     }
 
@@ -99,7 +101,7 @@ class Scienc extends React.Component{
     render() {
       const {noMorePoints} = this.state
         return(
-            <div className="container" id="header">
+            <Container fluid style={{"marginTop": "110px"}}>
                 <Table striped bordered hover>
                     <thead>
                         <tr>
@@ -113,7 +115,7 @@ class Scienc extends React.Component{
                     </tbody>
                 </Table>
                 
-            </div>
+            </Container>
         )
     }
 }

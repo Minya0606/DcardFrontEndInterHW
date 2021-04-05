@@ -37,7 +37,7 @@ function App(){
   
   return(
     <div>
-      <Navbar id="top-nav" bg="light" expand="lg">
+      <Navbar id="top-nav" bg="light" expand="lg" fixed="top">
         <Link to="/" className="navbar-brand"> Demo </Link>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">

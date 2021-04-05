@@ -26,7 +26,7 @@ const CityNames = [
   {'enName':'KinmenCounty', 'name':'金門縣'},
   {'enName':'LienchiangCounty', 'name':'連江縣'},
 ]
-
+let fetchNew = true //控制是否抓取資料，避免scroll 抓取多次
 class SciencCity extends React.Component{
     constructor(props){
         super(props)
@@ -34,7 +34,6 @@ class SciencCity extends React.Component{
             points:[],
             skip:30,
             noMorePoints: false,
-            fetchNew:true
         }
     }
     componentDidMount(){
@@ -61,22 +60,25 @@ class SciencCity extends React.Component{
 
     componentDidUpdate(prevProps){
         const {city} = this.props.match.params
-        
+        fetchNew = true 
+
         if(prevProps.match.params.city !== city) //判斷是否是不同城市
             fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30`)
             .then(res => res.json())
             .then(data => {
-                let noMorePoints = data.length <30 ?true:false //判斷是否還有更多資料
+                let noMorePoints = data.length <30 ? true:false //判斷是否還有更多資料
                 if(data.length > 0)
                     this.setState({
                         points: data,
-                        noPoints:noMorePoints,
+                        noMorePoints:noMorePoints,
                         skip:30
                     })
-                else
+                else{
                     this.setState({
-                        noMorePoints:false
+                        noMorePoints:true
                     })
+                    fetchNew = false
+                }
             })
             .catch(err => console.log("err", err))
     }
@@ -86,25 +88,31 @@ class SciencCity extends React.Component{
     }
 
     isBottom = () =>{
-        const { skip, points, noMorePoints, fetchNew } = this.state
+        const { skip, points, noMorePoints } = this.state
         const {city} = this.props.match.params
         if(!noMorePoints) //判斷是否還有更多資料
             if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
                 //抓取後30筆資料
                 if(fetchNew){//控制是否抓取新資料
-                    this.setState({
-                        fetchNew:false
-                    })
+                    fetchNew = false
                     fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30&$skip=${skip}`)
                     .then(res => res.json())
                     .then(data => {
-                        let merged = points.concat(data) //串接前面的景點資料
-                        let noMorePoints = merged.length >= skip+30? true:false //判斷是否還有更多資料
-                        this.setState({
-                            skip:skip+30,
-                            points:merged,
-                            noMorePoints:noMorePoints
-                        })
+                        if(!data.message){
+                            let merged = points.concat(data) //串接前面的景點資料
+                            let noMorePoints = merged.length < skip+30? true:false //判斷是否還有更多資料
+                            this.setState({
+                                skip:skip+30,
+                                points:merged,
+                                noMorePoints:noMorePoints
+                            })
+                        }
+                        else{
+                            this.setState({
+                                noMorePoints:true
+                            })
+                            fetchNew = false
+                        }
                     })
                     .catch(err => console.log("err", err))
                 }
@@ -136,10 +144,7 @@ class SciencCity extends React.Component{
                 <td>{`${index+1}. `}{data.Name}</td>
             </tr>
         )
-        if(!this.state.fetchNew)
-            this.setState({
-                fetchNew:true
-            })
+        fetchNew = true
         return tags
     }
     
@@ -149,7 +154,7 @@ class SciencCity extends React.Component{
         const {points, noMorePoints} = this.state
         const {city} = this.props.match.params
         return(
-            <Container>
+            <Container style={{"marginTop": "110px"}}>
                 <Table>
                     {city ? this.showCityName() : null}
                     <tbody id="show-points">
