@@ -15,7 +15,7 @@ class Scienc extends React.Component{
         window.addEventListener('scroll', this.isBottom)
 
         //抓取前30比景點資料
-        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${this.state.flag}`)
+        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=30`)
         .then(res => res.json())
         .then(data => {
             if(data.length > 0)
@@ -41,7 +41,7 @@ class Scienc extends React.Component{
       if(!noPoints)//判斷是否抓取新資料
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
           //抓取後30筆資料
-          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=${flag+30}&$skip=${flag}`)
+          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=30&$skip=${flag}`)
           .then(res => res.json())
           .then(data => {
             if(data.length >0){
@@ -72,7 +72,7 @@ class Scienc extends React.Component{
           pointTags = this.state.points.map((data, index) =>{
                 return(
                     <tr key={index} id={index}>
-                        <td>{data.Name}</td>
+                        <td>{index}{data.Name}</td>
                         <td>{data.Description}</td>
                     </tr> 
                 )

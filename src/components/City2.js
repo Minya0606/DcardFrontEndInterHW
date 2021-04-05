@@ -32,17 +32,17 @@ class SciencCity extends React.Component{
         super(props)
         this.state = {
             points:[],
-            flag:30,
+            skip:30,
             noMorePoints: false,
+            fetchNew:true
         }
     }
     componentDidMount(){
-        const {flag} = this.state
         const {city} = this.props.match.params
         
         window.addEventListener('scroll', this.isBottom)
 
-        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
+        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30`)
         .then(res => res.json())
         .then(data => {
             let noMorePoints = data.length <30 ?true:false
@@ -60,19 +60,19 @@ class SciencCity extends React.Component{
     }
 
     componentDidUpdate(prevProps){
-        const flag = 30
         const {city} = this.props.match.params
-        console.log(flag)
+        
         if(prevProps.match.params.city !== city)
-            fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
+            fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30`)
             .then(res => res.json())
             .then(data => {
                 let noMorePoints = data.length <30 ?true:false
                 if(data.length > 0)
                     this.setState({
                         points: data,
-                        noPoints:noMorePoints
-                    }, console.log(this.state.points))
+                        noPoints:noMorePoints,
+                        skip:30
+                    })
                 else
                     this.setState({
                         noMorePoints:false
@@ -86,28 +86,30 @@ class SciencCity extends React.Component{
     }
 
     isBottom = () =>{
-        const { flag, points, noMorePoints } = this.state
+        const { skip, points, noMorePoints, fetchNew } = this.state
         const {city} = this.props.match.params
         if(!noMorePoints)
             if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
                 //抓取後30筆資料
-                fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&$skip=${flag}`)
-                .then(res => res.json())
-                .then(data => {
-                    let merged = points.concat(data)
-                    let noMorePoints = merged.length<flag+30 ? true : false
-                    if(data.length > 0)
+                if(fetchNew){
+                    this.setState({
+                        fetchNew:false
+                    })
+                    fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30&$skip=${skip}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        let merged = points.concat(data) //串接前面的景點資料
+                        let noMorePoints = merged.length >= skip+30? true:false //控制是否抓取新資料
                         this.setState({
-                            points: merged,
-                            noPoints:noMorePoints,
-                            flag:flag+30
-                        }, console.log(this.state.points))
-                    else
-                        this.setState({
-                            noMorePoints:false
+                            skip:skip+30,
+                            points:merged,
+                            noMorePoints:noMorePoints
                         })
-                })
-                .catch(err => console.log("err", err))
+                    })
+                    .catch(err => console.log("err", err))
+                }
+                
+                
             }
               
       }
@@ -134,9 +136,14 @@ class SciencCity extends React.Component{
                 <td>{`${index+1}. `}{data.Name}</td>
             </tr>
         )
+        if(!this.state.fetchNew)
+            this.setState({
+                fetchNew:true
+            })
         return tags
     }
-        
+    
+   
 
     render(){
         const {points, noMorePoints} = this.state
@@ -145,7 +152,7 @@ class SciencCity extends React.Component{
             <Container>
                 <Table>
                     {city ? this.showCityName() : null}
-                    <tbody>
+                    <tbody id="show-points">
                         {points.length>1 ?this.renderPoints(): null}
                         {noMorePoints?<tr><td colSpan="2">沒有更多景點了</td></tr>:null}
                     </tbody>

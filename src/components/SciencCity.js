@@ -36,12 +36,14 @@ function SciencCity(){
   useEffect(() =>{
     let active = true
     //請求當前 city 之前30比景點資料
-    fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag}`)
+    fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${30}`)
     .then(res => res.json())
     .then(data => {
         if(active){
-          if(data.length > 0)
+          if(data.length > 0){
             setPoints(data)
+            setFlag(30)
+          }
             if(data.length <=30)
               setNoPoints(true)
           }
@@ -58,7 +60,7 @@ function SciencCity(){
         active = false
         window.removeEventListener('scroll', isBottom)  //移除捲動至底部事件監聽
     }
-  }, [city])  
+  }, [city, flag, noPoints])  
 
   //捲動至底部事件
   const isBottom = () =>{
