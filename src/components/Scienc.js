@@ -5,9 +5,10 @@ class Scienc extends React.Component{
     constructor(props){
         super(props)
         this.state = {
-          flag:30,
+          skip:30,
           points:[],
-          noPoints:false,
+          noMorePoints:false,
+          fetchNew:true
         }
     }
     componentDidMount(){
@@ -24,7 +25,7 @@ class Scienc extends React.Component{
               })
             else{
               this.setState({
-                noPoints:true
+                noMorePoints:true
               })
             }
         })
@@ -37,29 +38,37 @@ class Scienc extends React.Component{
 
     //移動至底部之事件
     isBottom = () =>{
-      const { flag, points, noPoints } = this.state
-      if(!noPoints)//判斷是否抓取新資料
+      const { skip, points, noMorePoints, fetchNew } = this.state
+      if(!noMorePoints)//判斷是否還有更多資料
         if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
-          //抓取後30筆資料
-          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=30&$skip=${flag}`)
-          .then(res => res.json())
-          .then(data => {
-            if(data.length >0){
-              let merged = points.concat(data) //串接前面的景點資料
-              let noPoints = merged.length >= flag+30? true:false //控制是否抓取新資料
-              this.setState({
-                flag:flag+30,
-                points:merged,
-                noPoints:noPoints
-              })
-            }
-            else{
-              this.setState({
-                noPoints:true,
-                fetchNew:false
-              })
-            }
-          })
+          if(fetchNew){//判斷是否抓取新資料
+            this.setState({
+              fetchNew:false
+            })
+
+            //抓取後30筆資料
+            fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot?$top=30&$skip=${skip}`)
+            .then(res => res.json())
+            .then(data => {
+              if(data.length >0){
+                let merged = points.concat(data) //串接前面的景點資料
+                let noMorePoints = merged.length < skip+30? true:false //判斷是否還有更多資料
+
+                this.setState({
+                  skip:skip+30,
+                  points:merged,
+                  noMorePoints:noMorePoints
+                })
+              }
+              else{
+                this.setState({
+                  noMorePoints:true,
+                  fetchNew:false
+                })
+              }
+            })
+          }
+          
         }
             
     }
@@ -72,17 +81,23 @@ class Scienc extends React.Component{
           pointTags = this.state.points.map((data, index) =>{
                 return(
                     <tr key={index} id={index}>
-                        <td>{index}{data.Name}</td>
+                        <td>{`${index+1}. ${data.Name}`}</td>
                         <td>{data.Description}</td>
                     </tr> 
                 )
             })
+        
+        if(!this.state.fetchNew){
+          this.setState({
+            fetchNew:true
+          })
+        }
         return pointTags
     }
 
     
     render() {
-      const {noPoints} = this.state
+      const {noMorePoints} = this.state
         return(
             <div className="container" id="header">
                 <Table striped bordered hover>
@@ -94,7 +109,7 @@ class Scienc extends React.Component{
                     </thead>
                     <tbody>
                         {this.renderPoints()}
-                        {noPoints?<tr><td colSpan="2" style={{"color":"red"}}>沒有更多景點了</td></tr>:null}
+                        {noMorePoints?<tr><td colSpan="2" style={{"color":"red"}}>沒有更多景點了</td></tr>:null}
                     </tbody>
                 </Table>
                 

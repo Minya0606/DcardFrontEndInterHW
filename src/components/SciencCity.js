@@ -1,6 +1,6 @@
-import React, { useState, useEffect} from 'react'
-import { Container, Table} from 'react-bootstrap'
-import { useParams } from 'react-router-dom/cjs/react-router-dom.min'
+import React from 'react'
+import { Route, Link} from 'react-router-dom'
+import { Container, Table, Row, Col, ListGroup} from 'react-bootstrap'
  
 const CityNames = [
   {'enName':'Keelung', 'name':'基隆市'},
@@ -27,107 +27,139 @@ const CityNames = [
   {'enName':'LienchiangCounty', 'name':'連江縣'},
 ]
 
-function SciencCity(){
-  let {city} = useParams()
-  const [points, setPoints] = useState([])
-  const [flag, setFlag] = useState(30)
-  const [noPoints, setNoPoints] = useState(false)
-
-  useEffect(() =>{
-    let active = true
-    //請求當前 city 之前30比景點資料
-    fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${30}`)
-    .then(res => res.json())
-    .then(data => {
-        if(active){
-          if(data.length > 0){
-            setPoints(data)
-            setFlag(30)
-          }
-            if(data.length <=30)
-              setNoPoints(true)
-          }
-          else
-            // alert("沒有更多景點了!")
-            setNoPoints(true)
-    })
-    .catch(err => console.log("err", err))
-
-    //加入捲動至底部事件監聽
-    window.addEventListener('scroll', isBottom)
-    
-    return() => {
-        active = false
-        window.removeEventListener('scroll', isBottom)  //移除捲動至底部事件監聽
+class SciencCity extends React.Component{
+    constructor(props){
+        super(props)
+        this.state = {
+            points:[],
+            skip:30,
+            noMorePoints: false,
+            fetchNew:true
+        }
     }
-  }, [city, flag, noPoints])  
+    componentDidMount(){
+        const {city} = this.props.match.params
+        
+        window.addEventListener('scroll', this.isBottom)
 
-  //捲動至底部事件
-  const isBottom = () =>{
-    if(!noPoints)
-      if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
-        console.log("City", city)
-        //請求後30比之景點資料
-          fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=${flag+30}&$skip=${flag}`)
-          .then(res => res.json())
-          .then(data => {
-              if(data.length >0){
-                let newPoints = points.concat(data)
-                setPoints(newPoints)
-                setFlag(flag+30)
-                if(newPoints.length <=flag+30)
-                  setNoPoints(true)
-              }
-              else{
-                // alert("沒有更多景點了!")
-                console.log("NO")
-                setNoPoints(true)
-              }
-          })
-          .catch(err => console.log("err!", err))
-    } 
-         
-  }
+        fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30`)
+        .then(res => res.json())
+        .then(data => {
+            let noMorePoints = data.length <30 ?true:false
+            if(data.length > 0)
+                this.setState({
+                    points: data,
+                    noMorePoints:noMorePoints
+                })
+            else
+                this.setState({
+                    noMorePoints:true
+                })
+        })
+        .catch(err => console.log("err", err))
+    }
 
-  //Render 景點清單
-  const renderPoints = () =>{
-    let tags = []
-    tags = points.map((data, index) =>
-      <tr key={index}>
-        <td>{`${index+1}. `}{data.Name}</td>
-      </tr>
-    )
-    return tags
-  }
+    componentDidUpdate(prevProps){
+        const {city} = this.props.match.params
+        
+        if(prevProps.match.params.city !== city) //判斷是否是不同城市
+            fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30`)
+            .then(res => res.json())
+            .then(data => {
+                let noMorePoints = data.length <30 ?true:false //判斷是否還有更多資料
+                if(data.length > 0)
+                    this.setState({
+                        points: data,
+                        noPoints:noMorePoints,
+                        skip:30
+                    })
+                else
+                    this.setState({
+                        noMorePoints:false
+                    })
+            })
+            .catch(err => console.log("err", err))
+    }
 
-  //渲染城市名稱
-  const tableHeader = ()=> {
-      const name = CityNames.map(data => {
-          if(data.enName === city)
-              return data.name
-      })
-      return(
-          <thead>
-              <tr>
-                  <th>{name}的景點 : </th>
-              </tr>
-          </thead>
-      )
-  }
-  
-  return(
-      <Container>
-          <Table>
-              {points.length>1 ? tableHeader() : null}
-              <tbody>
-                  {city.length>0 ?renderPoints(): null}
-                  {noPoints?<tr><td colSpan="2">沒有更多景點了</td></tr>:null}
-              </tbody>
-          </Table>
-      </Container>
-  )
+    componentWillUnmount(){
+        window.removeEventListener('scroll', this.isBottom)
+    }
+
+    isBottom = () =>{
+        const { skip, points, noMorePoints, fetchNew } = this.state
+        const {city} = this.props.match.params
+        if(!noMorePoints) //判斷是否還有更多資料
+            if(window.innerHeight + window.pageYOffset >= document.body.offsetHeight){
+                //抓取後30筆資料
+                if(fetchNew){//控制是否抓取新資料
+                    this.setState({
+                        fetchNew:false
+                    })
+                    fetch(`https://ptx.transportdata.tw/MOTC/v2/Tourism/ScenicSpot/${city}?$top=30&$skip=${skip}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        let merged = points.concat(data) //串接前面的景點資料
+                        let noMorePoints = merged.length >= skip+30? true:false //判斷是否還有更多資料
+                        this.setState({
+                            skip:skip+30,
+                            points:merged,
+                            noMorePoints:noMorePoints
+                        })
+                    })
+                    .catch(err => console.log("err", err))
+                }
+                
+                
+            }
+              
+      }
+
+    showCityName(){
+        const {city} = this.props.match.params
+        const name = CityNames.map(data => {
+            if(data.enName == city)
+                return data.name
+        })
+        return(
+            <thead>
+                <tr>
+                    <th>{name}的景點 : </th>
+                </tr>
+            </thead>
+        )
+    }
+    
+    renderPoints(){
+        let tags = []
+        tags = this.state.points.map((data, index) =>
+            <tr key={index}>
+                <td>{`${index+1}. `}{data.Name}</td>
+            </tr>
+        )
+        if(!this.state.fetchNew)
+            this.setState({
+                fetchNew:true
+            })
+        return tags
+    }
+    
+   
+
+    render(){
+        const {points, noMorePoints} = this.state
+        const {city} = this.props.match.params
+        return(
+            <Container>
+                <Table>
+                    {city ? this.showCityName() : null}
+                    <tbody id="show-points">
+                        {points.length>1 ?this.renderPoints(): null}
+                        {noMorePoints?<tr><td colSpan="2">沒有更多景點了</td></tr>:null}
+                    </tbody>
+                </Table>
+            </Container>
+        )
+    }
 }
-
-
 
 export default SciencCity;
